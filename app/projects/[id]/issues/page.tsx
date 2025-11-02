@@ -6,49 +6,7 @@ import { Badge } from "@/shared/ui/atoms/badge";
 import { Button } from "@/shared/ui/atoms/button";
 import type { Issue } from "@/features/issues/type";
 import { STATUS_TO_TONE } from "@/features/issues/constants";
-
-const dummyIssues: Issue[] = [
-  {
-    id: "1",
-    projectId: "1",
-    title: "検索の空状態を作る",
-    status: "backlog",
-    createdAt: "2025-01-01",
-    updatedAt: "2025-01-01",
-  },
-  {
-    id: "2",
-    projectId: "1",
-    title: "Issue詳細のインライン編集",
-    status: "in_progress",
-    createdAt: "2025-01-01",
-    updatedAt: "2025-01-01",
-  },
-  {
-    id: "3",
-    projectId: "1",
-    title: "コマンドパレット土台",
-    status: "todo",
-    createdAt: "2025-01-01",
-    updatedAt: "2025-01-01",
-  },
-  {
-    id: "4",
-    projectId: "1",
-    title: "サイドバー実装",
-    status: "done",
-    createdAt: "2025-01-01",
-    updatedAt: "2025-01-01",
-  },
-  {
-    id: "5",
-    projectId: "1",
-    title: "完了にしたらステータスを変える",
-    status: "archived",
-    createdAt: "2025-01-01",
-    updatedAt: "2025-01-01",
-  },
-];
+import { dummyProject, dummyIssues } from "@/features/issues/mock";
 
 const IssuesPage = () => {
   const [activeIssue, setActiveIssue] = useState<Issue>(dummyIssues[0]);
