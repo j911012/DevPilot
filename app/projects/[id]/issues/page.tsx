@@ -4,15 +4,39 @@ import { useState } from "react";
 import { Input } from "@/shared/ui/atoms/input";
 import { Badge } from "@/shared/ui/atoms/badge";
 import { Button } from "@/shared/ui/atoms/button";
-import type { Issue } from "@/features/issues/type";
+import type { Issue, IssueStatus } from "@/features/issues/type";
 import { STATUS_TO_TONE } from "@/features/issues/constants";
 import { dummyProject, dummyIssues } from "@/features/issues/mock";
 
 const IssuesPage = () => {
   const [issues, setIssues] = useState<Issue[]>(dummyIssues);
   const [activeIssueId, setActiveIssueId] = useState<string>(issues[0].id);
+  const [statusFilter, setStatusFilter] = useState<"all" | IssueStatus>("all");
+  const [keyword, setKeyword] = useState("");
+
   const activeIssue =
     issues.find((issue) => issue.id === activeIssueId) ?? issues[0];
+
+  const normalizedKeyword = keyword.trim().toLowerCase();
+
+  // ステータスとキーワードでフィルタリングしたIssue一覧を取得する
+  const filteredIssues = issues.filter((issue) => {
+    // statusFilter === "all" が trueの時、全件表示なので式全体は即true。それ以外の時は issue.status が statusFilter と一致するかどうかをチェック。
+    const matchesStatus =
+      statusFilter === "all" || issue.status === statusFilter;
+
+    // タイトルと説明文を1つの検索対象文字列に結合して、小文字化（大小無視検索のため）
+    const searchableText = `${issue.title} ${
+      issue.description ?? ""
+    }`.toLowerCase();
+
+    // キーワード未入力なら全件ヒット、入力ありなら検索対象文字列にそのキーワードが含まれていればヒット
+    const matchesKeyword =
+      normalizedKeyword === "" || searchableText.includes(normalizedKeyword);
+
+    // ステータスとキーワードの両方の条件を満たしたものだけをフィルタリング結果に含める
+    return matchesStatus && matchesKeyword;
+  });
 
   return (
     <div className="grid min-h-screen grid-cols-[280px_1fr_320px]">
