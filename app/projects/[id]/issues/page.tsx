@@ -14,9 +14,6 @@ const IssuesPage = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | IssueStatus>("all");
   const [keyword, setKeyword] = useState("");
 
-  const activeIssue =
-    issues.find((issue) => issue.id === activeIssueId) ?? issues[0];
-
   const normalizedKeyword = keyword.trim().toLowerCase();
 
   // ステータスとキーワードでフィルタリングしたIssue一覧を取得する
@@ -38,14 +35,42 @@ const IssuesPage = () => {
     return matchesStatus && matchesKeyword;
   });
 
+  // アクティブなIssueを取得（フィルタ結果優先に）
+  const activeIssue =
+    filteredIssues.find((issue) => issue.id === activeIssueId) ??
+    filteredIssues[0] ??
+    null; // フィルタリング結果が空の場合はnullを返す
+
   return (
     <div className="grid min-h-screen grid-cols-[280px_1fr_320px]">
       <aside className="border-r border-black/10 dark:border-white/10 p-3">
-        <div className="mb-3">
-          <Input placeholder="Filter…" />
+        <div className="mb-3 flex items-center gap-2">
+          <Input
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="検索"
+            aria-label="キーワードフィルタ"
+            className="flex-1 min-w-0"
+          />
+
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as "all" | IssueStatus)
+            }
+            className="ml-2 h-9 w-24 shrink-0 rounded-[var(--radius)] border border-black/10 dark:border-white/15 bg-background px-2 text-sm"
+            aria-label="ステータスフィルタ"
+          >
+            <option value="all">All</option>
+            <option value="backlog">backlog</option>
+            <option value="todo">todo</option>
+            <option value="in_progress">in_progress</option>
+            <option value="done">done</option>
+            <option value="archived">archived</option>
+          </select>
         </div>
         <ul className="space-y-1">
-          {issues.map((issue) => (
+          {filteredIssues.map((issue: Issue) => (
             <li key={issue.id}>
               <button
                 onClick={() => setActiveIssueId(issue.id)}
@@ -69,23 +94,29 @@ const IssuesPage = () => {
       </aside>
 
       <main className="p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <h2 className="text-lg font-semibold">
-            {activeIssue?.title ?? "No issue selected"}
-          </h2>
-          <Badge tone={STATUS_TO_TONE[activeIssue.status]}>
-            {activeIssue.status}
-          </Badge>
-        </div>
-        <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
-          <p>{activeIssue?.description ?? "No description"}</p>
-          <div className="flex gap-2">
-            <Button size="sm">編集</Button>
-            <Button size="sm" variant="outline">
-              完了にする
-            </Button>
-          </div>
-        </div>
+        {activeIssue ? (
+          <>
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="text-lg font-semibold">
+                {activeIssue?.title ?? "No issue selected"}
+              </h2>
+              <Badge tone={STATUS_TO_TONE[activeIssue.status]}>
+                {activeIssue.status}
+              </Badge>
+            </div>
+            <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+              <p>{activeIssue?.description ?? "No description"}</p>
+              <div className="flex gap-2">
+                <Button size="sm">編集</Button>
+                <Button size="sm" variant="outline">
+                  完了にする
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <p>No issue selected</p>
+        )}
       </main>
 
       <aside className="border-l border-black/10 dark:border-white/10 p-4">
