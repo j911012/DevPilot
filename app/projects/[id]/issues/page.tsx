@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "@/shared/ui/atoms/input";
 import { Badge } from "@/shared/ui/atoms/badge";
 import { Button } from "@/shared/ui/atoms/button";
@@ -13,6 +13,8 @@ const IssuesPage = () => {
   const [activeIssueId, setActiveIssueId] = useState<string>(issues[0].id);
   const [statusFilter, setStatusFilter] = useState<"all" | IssueStatus>("all");
   const [keyword, setKeyword] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [draftTitle, setDraftTitle] = useState("");
 
   const normalizedKeyword = keyword.trim().toLowerCase();
 
@@ -73,7 +75,11 @@ const IssuesPage = () => {
           {filteredIssues.map((issue: Issue) => (
             <li key={issue.id}>
               <button
-                onClick={() => setActiveIssueId(issue.id)}
+                onClick={() => {
+                  setActiveIssueId(issue.id);
+                  setIsEditingTitle(false);
+                  setDraftTitle("");
+                }}
                 aria-current={activeIssueId === issue.id ? "true" : undefined}
                 className={`w-full rounded-[var(--radius)] px-3 py-2 text-left hover:bg-black/[.04] dark:hover:bg-white/[.06] ${
                   activeIssueId === issue.id
