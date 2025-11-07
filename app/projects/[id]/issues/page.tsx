@@ -30,6 +30,31 @@ const IssuesPage = () => {
     setOpenActions(false);
   };
 
+  /**
+   * タイトルのインライン編集確定
+   */
+  const submitTitle = () => {
+    const nextTitle = draftTitle.trim();
+    if (!nextTitle || nextTitle === activeIssue?.title) {
+      setIsEditingTitle(false);
+      return;
+    }
+    setIssues(
+      issues.map((issue) =>
+        issue.id === activeIssueId ? { ...issue, title: nextTitle } : issue
+      )
+    );
+    setIsEditingTitle(false);
+  };
+
+  /**
+   * タイトルのインライン編集キャンセル
+   */
+  const cancelTitle = () => {
+    setIsEditingTitle(false);
+    setDraftTitle(activeIssue?.title);
+  };
+
   // 編集モードに入ったらフォーカス/全選択
   useEffect(() => {
     if (!isEditingTitle) return;
@@ -138,6 +163,17 @@ const IssuesPage = () => {
                     ref={titleRef}
                     value={draftTitle}
                     onChange={(e) => setDraftTitle(e.target.value)}
+                    onBlur={submitTitle}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelTitle();
+                      }
+                    }}
                     aria-label="Issueタイトル編集"
                     className="max-w-md"
                   />
