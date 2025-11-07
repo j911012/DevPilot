@@ -1,18 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/shared/ui/atoms/input";
 import { Badge } from "@/shared/ui/atoms/badge";
 import { Button } from "@/shared/ui/atoms/button";
 import type { Issue, IssueStatus } from "@/features/issues/type";
 import { STATUS_TO_TONE } from "@/features/issues/constants";
 import { dummyProject, dummyIssues } from "@/features/issues/mock";
+import { Settings, X, Pencil, Trash2 } from "lucide-react";
 
 const IssuesPage = () => {
   const [issues, setIssues] = useState<Issue[]>(dummyIssues);
   const [activeIssueId, setActiveIssueId] = useState<string>(issues[0].id);
   const [statusFilter, setStatusFilter] = useState<"all" | IssueStatus>("all");
   const [keyword, setKeyword] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [openActions, setOpenActions] = useState(false);
+
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * タイトルのインライン編集開始
+   */
+  const startEditTitle = () => {
+    if (!activeIssue) return;
+    setIsEditingTitle(true);
+    setDraftTitle(activeIssue.title);
+    setOpenActions(false);
+  };
+
+  /**
+   * タイトルのインライン編集確定
+   */
+  const submitTitle = () => {
+    const nextTitle = draftTitle.trim();
+    if (!nextTitle || nextTitle === activeIssue?.title) {
+      setIsEditingTitle(false);
+      return;
+    }
+    setIssues(
+      issues.map((issue) =>
+        issue.id === activeIssueId ? { ...issue, title: nextTitle } : issue
+      )
+    );
+    setIsEditingTitle(false);
+  };
+
+  /**
+   * タイトルのインライン編集キャンセル
+   */
+  const cancelTitle = () => {
+    setIsEditingTitle(false);
+    setDraftTitle(activeIssue?.title);
+  };
+
+  // 編集モードに入ったらフォーカス/全選択
+  useEffect(() => {
+    if (!isEditingTitle) return;
+    titleRef.current?.focus();
+  }, [isEditingTitle]);
 
   const normalizedKeyword = keyword.trim().toLowerCase();
 
@@ -73,7 +120,11 @@ const IssuesPage = () => {
           {filteredIssues.map((issue: Issue) => (
             <li key={issue.id}>
               <button
-                onClick={() => setActiveIssueId(issue.id)}
+                onClick={() => {
+                  setActiveIssueId(issue.id);
+                  setIsEditingTitle(false);
+                  setDraftTitle("");
+                }}
                 aria-current={activeIssueId === issue.id ? "true" : undefined}
                 className={`w-full rounded-[var(--radius)] px-3 py-2 text-left hover:bg-black/[.04] dark:hover:bg-white/[.06] ${
                   activeIssueId === issue.id
@@ -93,16 +144,85 @@ const IssuesPage = () => {
         </ul>
       </aside>
 
-      <main className="p-4">
+      <main className="p-4 relative">
         {activeIssue ? (
           <>
-            <div className="mb-3 flex items-center gap-2">
-              <h2 className="text-lg font-semibold">
-                {activeIssue?.title ?? "No issue selected"}
-              </h2>
-              <Badge tone={STATUS_TO_TONE[activeIssue.status]}>
-                {activeIssue.status}
-              </Badge>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {!isEditingTitle ? (
+                  <>
+                    <h2 className="text-lg font-semibold">
+                      {activeIssue?.title}
+                    </h2>
+                    <Badge tone={STATUS_TO_TONE[activeIssue.status]}>
+                      {activeIssue.status}
+                    </Badge>
+                  </>
+                ) : (
+                  <Input
+                    ref={titleRef}
+                    value={draftTitle}
+                    onChange={(e) => setDraftTitle(e.target.value)}
+                    onBlur={submitTitle}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelTitle();
+                      }
+                    }}
+                    aria-label="Issueタイトル編集"
+                    className="max-w-md"
+                  />
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="アクションメニューを開く"
+                onClick={() => setOpenActions(!openActions)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius)] hover:bg-black/[.06] dark:hover:bg-white/[.08]"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+              {openActions && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-10 z-10 mt-2 w-44 rounded-md border border-black/10 bg-background p-1 text-sm shadow-lg dark:border-white/15"
+                >
+                  <div className="flex items-center justify-between px-2 py-1.5">
+                    <span className="font-medium">Actions</span>
+                    <button
+                      type="button"
+                      onClick={() => setOpenActions(false)}
+                      aria-label="閉じる"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded hover:bg-black/[.06] dark:hover:bg-white/[.08]"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <button
+                    role="menuitem"
+                    type="button"
+                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
+                    onClick={startEditTitle}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    role="menuitem"
+                    type="button"
+                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
+                    onClick={() => {}}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              )}
             </div>
             <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
               <p>{activeIssue?.description ?? "No description"}</p>
