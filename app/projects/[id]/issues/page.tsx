@@ -10,6 +10,7 @@ import { STATUS_TO_TONE } from "@/features/issues/constants";
 import { dummyProject, dummyIssues } from "@/features/issues/mock";
 import { Settings, X, Pencil, Trash2 } from "lucide-react";
 import { Note } from "@/features/notes/type";
+import { IssueList } from "@/features/issues/components/IssueList";
 
 const IssuesPage = () => {
   const [issues, setIssues] = useState<Issue[]>(dummyIssues);
@@ -139,32 +140,15 @@ const IssuesPage = () => {
             <option value="archived">archived</option>
           </select>
         </div>
-        <ul className="space-y-1">
-          {filteredIssues.map((issue: Issue) => (
-            <li key={issue.id}>
-              <button
-                onClick={() => {
-                  setActiveIssueId(issue.id);
-                  setIsEditingTitle(false);
-                  setDraftTitle("");
-                }}
-                aria-current={activeIssueId === issue.id ? "true" : undefined}
-                className={`w-full rounded-[var(--radius)] px-3 py-2 text-left hover:bg-black/[.04] dark:hover:bg-white/[.06] ${
-                  activeIssueId === issue.id
-                    ? "bg-black/[.06] dark:bg-white/[.08]"
-                    : ""
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">{issue.title}</span>
-                  <Badge tone={STATUS_TO_TONE[issue.status]}>
-                    {issue.status}
-                  </Badge>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <IssueList
+          issues={filteredIssues}
+          activeIssueId={activeIssueId}
+          onSelect={(id) => {
+            setActiveIssueId(id);
+            setIsEditingTitle(false);
+            setDraftTitle("");
+          }}
+        />
       </aside>
 
       <main className="p-4 relative">
