@@ -11,6 +11,7 @@ import { dummyProject, dummyIssues } from "@/features/issues/mock";
 import { Settings, X, Pencil, Trash2 } from "lucide-react";
 import { Note } from "@/features/notes/type";
 import { IssueList } from "@/features/issues/components/IssueList";
+import { IssueActionsMenu } from "@/features/issues/components/IssueActionsMenu";
 
 const IssuesPage = () => {
   const [issues, setIssues] = useState<Issue[]>(dummyIssues);
@@ -186,50 +187,11 @@ const IssuesPage = () => {
                   />
                 )}
               </div>
-              <button
-                type="button"
-                aria-label="アクションメニューを開く"
-                onClick={() => setOpenActions(!openActions)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius)] hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-              {openActions && (
-                <div
-                  role="menu"
-                  className="absolute right-0 top-10 z-10 mt-2 w-44 rounded-md border border-black/10 bg-background p-1 text-sm shadow-lg dark:border-white/15"
-                >
-                  <div className="flex items-center justify-between px-2 py-1.5">
-                    <span className="font-medium">Actions</span>
-                    <button
-                      type="button"
-                      onClick={() => setOpenActions(false)}
-                      aria-label="閉じる"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <button
-                    role="menuitem"
-                    type="button"
-                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-                    onClick={startEditTitle}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    type="button"
-                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-                    onClick={() => {}}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              )}
+              <IssueActionsMenu
+                open={openActions}
+                onOpenChange={setOpenActions}
+                onEdit={startEditTitle}
+              />
             </div>
             <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
               <p>{activeIssue?.description ?? "No description"}</p>
