@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Input } from "@/shared/ui/atoms/input";
-import { Badge } from "@/shared/ui/atoms/badge";
 import { Button } from "@/shared/ui/atoms/button";
 import { Textarea } from "@/shared/ui/atoms/textarea";
 import type { Issue, IssueStatus } from "@/features/issues/type";
-import { STATUS_TO_TONE } from "@/features/issues/constants";
-import { dummyProject, dummyIssues } from "@/features/issues/mock";
-import { Settings, X, Pencil, Trash2 } from "lucide-react";
+import { dummyIssues } from "@/features/issues/mock";
 import { Note } from "@/features/notes/type";
 import { IssueList } from "@/features/issues/components/IssueList";
-import { IssueActionsMenu } from "@/features/issues/components/IssueActionsMenu";
+import { IssueHeader } from "@/features/issues/components/IssueHeader";
 
 const IssuesPage = () => {
   const [issues, setIssues] = useState<Issue[]>(dummyIssues);
@@ -23,8 +20,6 @@ const IssuesPage = () => {
   const [openActions, setOpenActions] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
   const [draftNote, setDraftNote] = useState("");
-
-  const titleRef = useRef<HTMLInputElement>(null);
 
   /**
    * タイトルのインライン編集開始
@@ -60,12 +55,6 @@ const IssuesPage = () => {
     setIsEditingTitle(false);
     setDraftTitle(activeIssue?.title);
   };
-
-  // 編集モードに入ったらフォーカス/全選択
-  useEffect(() => {
-    if (!isEditingTitle) return;
-    titleRef.current?.focus();
-  }, [isEditingTitle]);
 
   const normalizedKeyword = keyword.trim().toLowerCase();
 
@@ -155,44 +144,17 @@ const IssuesPage = () => {
       <main className="p-4 relative">
         {activeIssue ? (
           <>
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {!isEditingTitle ? (
-                  <>
-                    <h2 className="text-lg font-semibold">
-                      {activeIssue?.title}
-                    </h2>
-                    <Badge tone={STATUS_TO_TONE[activeIssue.status]}>
-                      {activeIssue.status}
-                    </Badge>
-                  </>
-                ) : (
-                  <Input
-                    ref={titleRef}
-                    value={draftTitle}
-                    onChange={(e) => setDraftTitle(e.target.value)}
-                    onBlur={submitTitle}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        e.currentTarget.blur();
-                      }
-                      if (e.key === "Escape") {
-                        e.preventDefault();
-                        cancelTitle();
-                      }
-                    }}
-                    aria-label="Issueタイトル編集"
-                    className="max-w-md"
-                  />
-                )}
-              </div>
-              <IssueActionsMenu
-                open={openActions}
-                onOpenChange={setOpenActions}
-                onEdit={startEditTitle}
-              />
-            </div>
+            <IssueHeader
+              issue={activeIssue}
+              isEditing={isEditingTitle}
+              draftTitle={draftTitle}
+              onChangeDraftTitle={setDraftTitle}
+              onSubmitTitle={submitTitle}
+              onCancelTitle={cancelTitle}
+              onStartEditTitle={startEditTitle}
+              openActions={openActions}
+              onOpenActionsChange={setOpenActions}
+            />
             <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
               <p>{activeIssue?.description ?? "No description"}</p>
               <div className="flex gap-2">
