@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Input } from "@/shared/ui/atoms/input";
 import { Button } from "@/shared/ui/atoms/button";
-import { Textarea } from "@/shared/ui/atoms/textarea";
 import type { Issue, IssueStatus } from "@/features/issues/type";
 import { dummyIssues } from "@/features/issues/mock";
 import { Note } from "@/features/notes/type";
 import { IssueList } from "@/features/issues/components/IssueList";
 import { IssueHeader } from "@/features/issues/components/IssueHeader";
+import { NotesPane } from "@/features/notes/components/NotesPane";
 
 const IssuesPage = () => {
   const [issues, setIssues] = useState<Issue[]>(dummyIssues);
@@ -19,7 +19,6 @@ const IssuesPage = () => {
   const [draftTitle, setDraftTitle] = useState("");
   const [openActions, setOpenActions] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [draftNote, setDraftNote] = useState("");
 
   /**
    * タイトルのインライン編集開始
@@ -86,9 +85,7 @@ const IssuesPage = () => {
   /**
    * メモの追加
    */
-  const addNote = () => {
-    const content = draftNote.trim();
-    if (!content) return;
+  const addNote = (content: string) => {
     const now = new Date().toISOString();
     setNotes((prev) => [
       {
@@ -99,7 +96,6 @@ const IssuesPage = () => {
       },
       ...prev,
     ]);
-    setDraftNote("");
   };
 
   return (
@@ -170,45 +166,7 @@ const IssuesPage = () => {
         )}
       </main>
 
-      <aside className="border-l border-black/10 dark:border-white/10 p-4">
-        <h3 className="mb-2 text-sm font-semibold">Notes / TIL</h3>
-        <div className="space-y-2">
-          <Textarea
-            value={draftNote}
-            onChange={(e) => setDraftNote(e.target.value)}
-            onKeyDown={(e) => {
-              // 送信は Cmd/Ctrl + Enter のみ
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                addNote();
-              }
-            }}
-            placeholder="メモ…（Cmd/Ctrl+Enterで追加 / Escでクリア）"
-            aria-label="メモ追加"
-          />
-          <Button size="sm" onClick={addNote}>
-            追加
-          </Button>
-        </div>
-
-        {notes.length === 0 ? (
-          <p className="mt-4 text-xs text-zinc-500">まだメモがありません</p>
-        ) : (
-          <ul className="mt-4 space-y-2">
-            {notes.map((note) => (
-              <li
-                key={note.id}
-                className="rounded border border-black/10 dark:border-white/10 p-2 text-sm whitespace-pre-wrap break-words"
-              >
-                {note.content}
-                <div className="mt-1 text-[10px] text-zinc-500">
-                  {new Date(note.createdAt).toLocaleString()}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </aside>
+      <NotesPane notes={notes} onAddNote={addNote} />
     </div>
   );
 };
