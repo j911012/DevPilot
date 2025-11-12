@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Input } from "@/shared/ui/atoms/input";
-import { Badge } from "@/shared/ui/atoms/badge";
 import { Button } from "@/shared/ui/atoms/button";
-import { Textarea } from "@/shared/ui/atoms/textarea";
 import type { Issue, IssueStatus } from "@/features/issues/type";
-import { STATUS_TO_TONE } from "@/features/issues/constants";
-import { dummyProject, dummyIssues } from "@/features/issues/mock";
-import { Settings, X, Pencil, Trash2 } from "lucide-react";
+import { dummyIssues } from "@/features/issues/mock";
 import { Note } from "@/features/notes/type";
+import { IssueList } from "@/features/issues/components/IssueList";
+import { IssueHeader } from "@/features/issues/components/IssueHeader";
+import { NotesPane } from "@/features/notes/components/NotesPane";
 
 const IssuesPage = () => {
   const [issues, setIssues] = useState<Issue[]>(dummyIssues);
@@ -20,9 +19,6 @@ const IssuesPage = () => {
   const [draftTitle, setDraftTitle] = useState("");
   const [openActions, setOpenActions] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [draftNote, setDraftNote] = useState("");
-
-  const titleRef = useRef<HTMLInputElement>(null);
 
   /**
    * タイトルのインライン編集開始
@@ -59,12 +55,6 @@ const IssuesPage = () => {
     setDraftTitle(activeIssue?.title);
   };
 
-  // 編集モードに入ったらフォーカス/全選択
-  useEffect(() => {
-    if (!isEditingTitle) return;
-    titleRef.current?.focus();
-  }, [isEditingTitle]);
-
   const normalizedKeyword = keyword.trim().toLowerCase();
 
   // ステータスとキーワードでフィルタリングしたIssue一覧を取得する
@@ -95,9 +85,7 @@ const IssuesPage = () => {
   /**
    * メモの追加
    */
-  const addNote = () => {
-    const content = draftNote.trim();
-    if (!content) return;
+  const addNote = (content: string) => {
     const now = new Date().toISOString();
     setNotes((prev) => [
       {
@@ -108,7 +96,6 @@ const IssuesPage = () => {
       },
       ...prev,
     ]);
-    setDraftNote("");
   };
 
   return (
@@ -139,114 +126,31 @@ const IssuesPage = () => {
             <option value="archived">archived</option>
           </select>
         </div>
-        <ul className="space-y-1">
-          {filteredIssues.map((issue: Issue) => (
-            <li key={issue.id}>
-              <button
-                onClick={() => {
-                  setActiveIssueId(issue.id);
-                  setIsEditingTitle(false);
-                  setDraftTitle("");
-                }}
-                aria-current={activeIssueId === issue.id ? "true" : undefined}
-                className={`w-full rounded-[var(--radius)] px-3 py-2 text-left hover:bg-black/[.04] dark:hover:bg-white/[.06] ${
-                  activeIssueId === issue.id
-                    ? "bg-black/[.06] dark:bg-white/[.08]"
-                    : ""
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">{issue.title}</span>
-                  <Badge tone={STATUS_TO_TONE[issue.status]}>
-                    {issue.status}
-                  </Badge>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <IssueList
+          issues={filteredIssues}
+          activeIssueId={activeIssueId}
+          onSelect={(id) => {
+            setActiveIssueId(id);
+            setIsEditingTitle(false);
+            setDraftTitle("");
+          }}
+        />
       </aside>
 
       <main className="p-4 relative">
         {activeIssue ? (
           <>
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {!isEditingTitle ? (
-                  <>
-                    <h2 className="text-lg font-semibold">
-                      {activeIssue?.title}
-                    </h2>
-                    <Badge tone={STATUS_TO_TONE[activeIssue.status]}>
-                      {activeIssue.status}
-                    </Badge>
-                  </>
-                ) : (
-                  <Input
-                    ref={titleRef}
-                    value={draftTitle}
-                    onChange={(e) => setDraftTitle(e.target.value)}
-                    onBlur={submitTitle}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        e.currentTarget.blur();
-                      }
-                      if (e.key === "Escape") {
-                        e.preventDefault();
-                        cancelTitle();
-                      }
-                    }}
-                    aria-label="Issueタイトル編集"
-                    className="max-w-md"
-                  />
-                )}
-              </div>
-              <button
-                type="button"
-                aria-label="アクションメニューを開く"
-                onClick={() => setOpenActions(!openActions)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius)] hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-              {openActions && (
-                <div
-                  role="menu"
-                  className="absolute right-0 top-10 z-10 mt-2 w-44 rounded-md border border-black/10 bg-background p-1 text-sm shadow-lg dark:border-white/15"
-                >
-                  <div className="flex items-center justify-between px-2 py-1.5">
-                    <span className="font-medium">Actions</span>
-                    <button
-                      type="button"
-                      onClick={() => setOpenActions(false)}
-                      aria-label="閉じる"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <button
-                    role="menuitem"
-                    type="button"
-                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-                    onClick={startEditTitle}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    type="button"
-                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-                    onClick={() => {}}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              )}
-            </div>
+            <IssueHeader
+              issue={activeIssue}
+              isEditing={isEditingTitle}
+              draftTitle={draftTitle}
+              onChangeDraftTitle={setDraftTitle}
+              onSubmitTitle={submitTitle}
+              onCancelTitle={cancelTitle}
+              onStartEditTitle={startEditTitle}
+              openActions={openActions}
+              onOpenActionsChange={setOpenActions}
+            />
             <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
               <p>{activeIssue?.description ?? "No description"}</p>
               <div className="flex gap-2">
@@ -262,45 +166,7 @@ const IssuesPage = () => {
         )}
       </main>
 
-      <aside className="border-l border-black/10 dark:border-white/10 p-4">
-        <h3 className="mb-2 text-sm font-semibold">Notes / TIL</h3>
-        <div className="space-y-2">
-          <Textarea
-            value={draftNote}
-            onChange={(e) => setDraftNote(e.target.value)}
-            onKeyDown={(e) => {
-              // 送信は Cmd/Ctrl + Enter のみ
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                addNote();
-              }
-            }}
-            placeholder="メモ…（Cmd/Ctrl+Enterで追加 / Escでクリア）"
-            aria-label="メモ追加"
-          />
-          <Button size="sm" onClick={addNote}>
-            追加
-          </Button>
-        </div>
-
-        {notes.length === 0 ? (
-          <p className="mt-4 text-xs text-zinc-500">まだメモがありません</p>
-        ) : (
-          <ul className="mt-4 space-y-2">
-            {notes.map((note) => (
-              <li
-                key={note.id}
-                className="rounded border border-black/10 dark:border-white/10 p-2 text-sm whitespace-pre-wrap break-words"
-              >
-                {note.content}
-                <div className="mt-1 text-[10px] text-zinc-500">
-                  {new Date(note.createdAt).toLocaleString()}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </aside>
+      <NotesPane notes={notes} onAddNote={addNote} />
     </div>
   );
 };
