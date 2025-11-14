@@ -4,12 +4,14 @@ type IssueActionsMenuProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;
+  onDelete: () => void;
 };
 
 export const IssueActionsMenu = ({
   open,
   onOpenChange,
   onEdit,
+  onDelete,
 }: IssueActionsMenuProps) => {
   return (
     <div
@@ -49,7 +51,7 @@ export const IssueActionsMenu = ({
             role="menuitem"
             type="button"
             className="flex w-full items-center gap-2 rounded px-2 py-1.5 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
-            onClick={() => {}}
+            onClick={() => onDelete()}
           >
             <Trash2 className="h-4 w-4" />
             <span>Delete</span>
