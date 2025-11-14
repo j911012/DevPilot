@@ -98,6 +98,28 @@ const IssuesPage = () => {
     ]);
   };
 
+  /**
+   * Issueの削除
+   */
+  const deleteActiveIssue = () => {
+    if (!activeIssue) return;
+
+    // 削除
+    setIssues((prev) => prev.filter((issue) => issue.id !== activeIssueId));
+
+    // 次の選択を決める（今のフィルタ条件で先頭→なければ空）
+    const remaining = filteredIssues.filter(
+      (issue) => issue.id !== activeIssueId
+    );
+    const nextId = remaining[0]?.id ?? "";
+    setActiveIssueId(nextId);
+
+    // 編集系リセット
+    setIsEditingTitle(false);
+    setDraftTitle("");
+    setOpenActions(false);
+  };
+
   return (
     <div className="grid min-h-screen grid-cols-[280px_1fr_320px]">
       <aside className="border-r border-black/10 dark:border-white/10 p-3">
@@ -150,6 +172,7 @@ const IssuesPage = () => {
               onStartEditTitle={startEditTitle}
               openActions={openActions}
               onOpenActionsChange={setOpenActions}
+              onDeleteIssue={deleteActiveIssue}
             />
             <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
               <p>{activeIssue?.description ?? "No description"}</p>
