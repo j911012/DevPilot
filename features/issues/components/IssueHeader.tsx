@@ -15,6 +15,7 @@ type IssueHeaderProps = {
   onStartEditTitle: () => void;
   openActions: boolean;
   onOpenActionsChange: (open: boolean) => void;
+  onDeleteIssue: () => void;
 };
 
 export const IssueHeader = ({
@@ -27,6 +28,7 @@ export const IssueHeader = ({
   onStartEditTitle,
   openActions,
   onOpenActionsChange,
+  onDeleteIssue,
 }: IssueHeaderProps) => {
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -69,6 +71,7 @@ export const IssueHeader = ({
         open={openActions}
         onOpenChange={onOpenActionsChange}
         onEdit={onStartEditTitle}
+        onDelete={onDeleteIssue}
       />
     </div>
   );
